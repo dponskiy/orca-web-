@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shared List · Orca</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f2f4f7;
+      min-height: 100vh;
+      padding-bottom: 100px;
+    }
+
+    /* Download banner */
+    .banner {
+      background: linear-gradient(135deg, #0e7c7b, #1aa3a2);
+      color: white;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    }
+    .banner-left { display: flex; align-items: center; gap: 10px; }
+    .banner-icon {
+      width: 36px; height: 36px;
+      background: white;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .banner-text { font-size: 13px; line-height: 1.4; }
+    .banner-text strong { display: block; font-size: 14px; }
+    .banner-btn {
+      background: white;
+      color: #0e7c7b;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    /* Header */
+    .header {
+      padding: 24px 20px 16px;
+    }
+    .header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0b1d33;
+      margin-bottom: 4px;
+    }
+    .header-meta {
+      font-size: 13px;
+      color: #888;
+    }
+    .progress-bar-wrap {
+      margin-top: 12px;
+      background: #e0e0e0;
+      border-radius: 99px;
+      height: 6px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 6px;
+      background: linear-gradient(90deg, #0e7c7b, #1aa3a2);
+      border-radius: 99px;
+      transition: width 0.3s ease;
+    }
+    .progress-label {
+      font-size: 12px;
+      color: #888;
+      margin-top: 6px;
+    }
+
+    /* Sections */
+    .section { margin: 16px 0; }
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      letter-spacing: 0.5px;
+      padding: 0 20px 8px;
+      text-transform: uppercase;
+    }
+    .items-card {
+      background: white;
+      border-radius: 16px;
+      margin: 0 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    /* Item row */
+    .item {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      gap: 14px;
+      cursor: pointer;
+      transition: background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .item:last-child { border-bottom: none; }
+    .item:active { background: #f7f7f7; }
+
+    .checkbox {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      border: 2px solid #ccc;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+    .checkbox.checked {
+      background: #0e7c7b;
+      border-color: #0e7c7b;
+    }
+    .checkbox.checked::after {
+      content: '';
+      width: 6px; height: 10px;
+      border: 2px solid white;
+      border-top: none; border-left: none;
+      transform: rotate(45deg) translate(-1px, -1px);
+      display: block;
+    }
+
+    .item-text {
+      font-size: 16px;
+      color: #0b1d33;
+      flex: 1;
+      transition: all 0.2s;
+    }
+    .item-text.checked {
+      color: #bbb;
+      text-decoration: line-through;
+    }
+
+    /* States */
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: #888;
+      font-size: 15px;
+    }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid #e0e0e0;
+      border-top-color: #0e7c7b;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error {
+      text-align: center;
+      padding: 60px 20px;
+      color: #e04040;
+      font-size: 15px;
+    }
+
+    .all-done {
+      text-align: center;
+      padding: 32px 20px;
+      color: #0e7c7b;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    /* Open in app */
+    .open-in-app {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0b1d33;
+      color: white;
+      border: none;
+      border-radius: 99px;
+      padding: 14px 28px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="banner">
+    <div class="banner-left">
+      <div class="banner-icon">🐋</div>
+      <div class="banner-text">
+        <strong>Orca</strong>
+        Capture anything. Remember everything.
+      </div>
+    </div>
+    <a class="banner-btn" href="https://apps.apple.com/app/orca/id6741454912" target="_blank">Get App</a>
+  </div>
+
+  <div id="app">
+    <div class="loading">
+      <div class="spinner"></div>
+      Loading list...
+    </div>
+  </div>
+
+  <a class="open-in-app" id="open-app-btn" href="#" style="display:none">
+    📱 Open in Orca
+  </a>
+
+  <script>
+    const SUPABASE_URL = 'https://nxugxxonutrbglldeinc.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54dWd4eG9udXRyYmdsbGRlaW5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NzI4NTksImV4cCI6MjA4NzQ0ODg1OX0.yyUjeouMK8j8ONNmc291kIulUcQLEj4__0QvnuscOf8';
+
+    const listId = new URLSearchParams(window.location.search).get('id')
+      || window.location.pathname.split('/').pop();
+
+    let listData = null;
+
+    async function api(path, options = {}) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation',
+          ...options.headers
+        },
+        ...options
+      });
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+      return res.json().catch(() => null);
+    }
+
+    async function loadList() {
+      if (!listId || listId === 'list') {
+        document.getElementById('app').innerHTML = '<div class="error">❌ No list found.<br>Ask the person who shared this to resend the link.</div>';
+        return;
+      }
+
+      try {
+        const rows = await api(`shared_lists?id=eq.${listId}&select=*`);
+        if (!rows || rows.length === 0) {
+          document.getElementById('app').innerHTML = '<div class="error">❌ List not found or expired.</div>';
+          return;
+        }
+        listData = rows[0];
+        render();
+
+        // Set deep link
+        const btn = document.getElementById('open-app-btn');
+        btn.href = `orca://list/${listId}`;
+        btn.style.display = 'flex';
+
+        // Poll for changes every 5s
+        setInterval(pollChanges, 5000);
+      } catch (e) {
+        document.getElementById('app').innerHTML = `<div class="error">❌ Failed to load list.<br><small>${e.message}</small></div>`;
+      }
+    }
+
+    async function pollChanges() {
+      try {
+        const rows = await api(`shared_lists?id=eq.${listId}&select=items`);
+        if (rows && rows[0]) {
+          const newItems = rows[0].items;
+          const changed = JSON.stringify(newItems) !== JSON.stringify(listData.items);
+          if (changed) {
+            listData.items = newItems;
+            render();
+          }
+        }
+      } catch (_) {}
+    }
+
+    function render() {
+      const items = listData.items || [];
+      const checked = items.filter(i => i.checked).length;
+      const total = items.length;
+      const pct = total ? Math.round((checked / total) * 100) : 0;
+
+      // Group by aisle
+      const grouped = {};
+      items.forEach(item => {
+        const aisle = item.aisle || '📦 Other';
+        if (!grouped[aisle]) grouped[aisle] = [];
+        grouped[aisle].push(item);
+      });
+
+      let html = `
+        <div class="header">
+          <h1>${escHtml(listData.title)}</h1>
+          <div class="header-meta">${checked} of ${total} items checked</div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar" style="width:${pct}%"></div>
+          </div>
+          <div class="progress-label">${pct}% done</div>
+        </div>
+      `;
+
+      if (total === 0) {
+        html += '<div class="all-done">🎉 Nothing on this list yet.</div>';
+      } else if (checked === total) {
+        html += '<div class="all-done">🎉 All done! Great shopping.</div>';
+      }
+
+      Object.entries(grouped).forEach(([aisle, aisleItems]) => {
+        html += `<div class="section"><div class="section-title">${escHtml(aisle)}</div><div class="items-card">`;
+        aisleItems.forEach(item => {
+          html += `
+            <div class="item ${item.checked ? 'checked' : ''}" onclick="toggleItem('${item.id}')">
+              <div class="checkbox ${item.checked ? 'checked' : ''}"></div>
+              <span class="item-text ${item.checked ? 'checked' : ''}">${escHtml(item.text)}</span>
+            </div>
+          `;
+        });
+        html += `</div></div>`;
+      });
+
+      document.getElementById('app').innerHTML = html;
+    }
+
+    async function toggleItem(itemId) {
+      if (!listData) return;
+      const items = listData.items.map(i =>
+        i.id === itemId ? { ...i, checked: !i.checked } : i
+      );
+      listData.items = items;
+      render(); // optimistic update
+
+      try {
+        await api(`shared_lists?id=eq.${listId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ items })
+        });
+      } catch (e) {
+        console.error('Failed to save:', e);
+      }
+    }
+
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    loadList();
+  </script>
+</body>
+</html>
