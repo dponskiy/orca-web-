@@ -282,10 +282,12 @@
       try {
         const rows = await api(`shared_lists?id=eq.${listId}&select=items`);
         if (rows && rows[0]) {
-          const newItems = rows[0].items;
-          const changed = JSON.stringify(newItems) !== JSON.stringify(listData.items);
+          const raw = rows[0].items;
+          const newItems = Array.isArray(raw) ? raw : (typeof raw === 'string' ? JSON.parse(raw) : []);
+          const changed = JSON.stringify(newItems) !== JSON.stringify(listData._parsedItems || []);
           if (changed) {
             listData.items = newItems;
+            listData._parsedItems = newItems;
             render();
           }
         }
@@ -293,7 +295,9 @@
     }
 
     function render() {
-      const items = listData.items || [];
+      const raw = listData.items;
+      const items = Array.isArray(raw) ? raw : (typeof raw === 'string' ? JSON.parse(raw) : []);
+      listData._parsedItems = items;
       const checked = items.filter(i => i.checked).length;
       const total = items.length;
       const pct = total ? Math.round((checked / total) * 100) : 0;
@@ -341,10 +345,12 @@
 
     async function toggleItem(itemId) {
       if (!listData) return;
-      const items = listData.items.map(i =>
+      const current = listData._parsedItems || (Array.isArray(listData.items) ? listData.items : JSON.parse(listData.items || '[]'));
+      const items = current.map(i =>
         i.id === itemId ? { ...i, checked: !i.checked } : i
       );
       listData.items = items;
+      listData._parsedItems = items;
       render(); // optimistic update
 
       try {
