@@ -180,27 +180,6 @@
       font-weight: 600;
     }
 
-    /* Open in app */
-    .open-in-app {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #0b1d33;
-      color: white;
-      border: none;
-      border-radius: 99px;
-      padding: 14px 28px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      text-decoration: none;
-      white-space: nowrap;
-    }
   </style>
 </head>
 <body>
@@ -223,9 +202,6 @@
     </div>
   </div>
 
-  <a class="open-in-app" id="open-app-btn" href="#" style="display:none">
-    📱 Open in Orca
-  </a>
 
   <script>
     const SUPABASE_URL = 'https://nxugxxonutrbglldeinc.supabase.co';
@@ -265,11 +241,6 @@
         }
         listData = rows[0];
         render();
-
-        // Set deep link
-        const btn = document.getElementById('open-app-btn');
-        btn.href = `orca://list/${listId}`;
-        btn.style.display = 'flex';
 
         // Poll for changes every 5s
         setInterval(pollChanges, 5000);
