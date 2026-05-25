@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["NT9FS4SA62.com.dponskiy.Orca"],
+        "components": [
+          {
+            "/": "/invite/*",
+            "comment": "Matches all Orca invite links"
+          }
+        ]
+      }
+    ]
+  }
+}
