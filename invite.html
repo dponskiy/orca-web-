@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>You're invited to a Shared Space on Orca</title>
+  <meta name="apple-itunes-app" content="app-id=YOUR_APP_STORE_ID, app-argument=orca-invite-token">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f6f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 24px;
+      padding: 40px 32px;
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+
+    .logo-wrap {
+      width: 80px;
+      height: 80px;
+      background: rgba(14, 124, 123, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+    }
+
+    .logo-wrap svg {
+      width: 36px;
+      height: 36px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      color: #0e2240;
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+
+    p {
+      font-size: 15px;
+      color: #6b7280;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.15s;
+    }
+
+    .btn:active { opacity: 0.8; }
+
+    .btn-primary {
+      background: #0e7c7b;
+      color: white;
+      margin-bottom: 12px;
+    }
+
+    .btn-secondary {
+      background: #f4f6f8;
+      color: #0e2240;
+    }
+
+    .divider {
+      font-size: 12px;
+      color: #9ca3af;
+      margin: 20px 0;
+    }
+
+    .footer {
+      margin-top: 28px;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    .expired {
+      color: #ef4444;
+      font-size: 14px;
+      margin-top: 16px;
+    }
+
+    #loading { color: #6b7280; font-size: 15px; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo-wrap">
+      <!-- Orca fin SVG -->
+      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18 4C10 4 4 14 4 22C4 26 8 32 18 32C28 32 32 26 32 22C32 14 26 4 18 4Z" fill="#0e7c7b" opacity="0.2"/>
+        <path d="M18 8C12 8 7 16 7 22C7 25 10 29 18 29C26 29 29 25 29 22C29 16 24 8 18 8Z" fill="#0e7c7b"/>
+      </svg>
+    </div>
+
+    <h1 id="title">You've been invited to a Shared Space</h1>
+    <p id="subtitle">Open Orca to collaborate on events, notes, and checklists together.</p>
+
+    <a id="open-btn" class="btn btn-primary" href="#">Open in Orca</a>
+
+    <div class="divider">Don't have Orca yet?</div>
+
+    <a
+      class="btn btn-secondary"
+      href="https://apps.apple.com/app/id6741984754"
+      target="_blank"
+    >
+      Download on the App Store
+    </a>
+
+    <p class="footer">After installing, come back and tap "Open in Orca" above.</p>
+  </div>
+
+  <script>
+    // Extract token from URL path: /invite/TOKEN
+    const pathParts = window.location.pathname.split('/');
+    const token = pathParts[pathParts.indexOf('invite') + 1] || '';
+
+    if (token) {
+      // Store in localStorage so the app can retrieve it after install
+      localStorage.setItem('orca_invite_token', token);
+
+      // Wire up the "Open in Orca" button with the custom scheme
+      document.getElementById('open-btn').href = 'orca://invite/' + token;
+
+      // Update the apple-itunes-app meta with the actual token
+      const meta = document.querySelector('meta[name="apple-itunes-app"]');
+      if (meta) {
+        meta.setAttribute('content',
+          'app-id=6741984754, app-argument=orca://invite/' + token
+        );
+      }
+    } else {
+      document.getElementById('title').textContent = 'Invalid invite link';
+      document.getElementById('subtitle').textContent = 'This link doesn\'t look right. Ask the person who invited you to send a new one.';
+      document.getElementById('open-btn').style.display = 'none';
+    }
+  </script>
+</body>
+</html>
