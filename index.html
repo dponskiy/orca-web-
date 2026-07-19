@@ -453,16 +453,12 @@
         ? data.cards
         : (typeof data.cards === 'string' ? JSON.parse(data.cards) : []);
 
-      const isChase = data.list_type === 'chase';
-      const badgeClass = isChase ? 'badge-chase' : 'badge-owned';
-      const badgeLabel = isChase ? '🎯 Chase List' : '✅ Owned';
       const totalValue = cards.reduce((sum, c) => sum + (c.market_price || 0), 0);
 
       let html = `
         <div class="collection-header">
           <h1>${escHtml(data.title)}</h1>
           <div class="collection-meta">
-            <span class="collection-badge ${badgeClass}">${badgeLabel}</span>
             <span>${cards.length} card${cards.length !== 1 ? 's' : ''}</span>
             ${totalValue > 0 ? `<span>Est. value <strong>$${totalValue.toFixed(2)}</strong></span>` : ''}
           </div>
