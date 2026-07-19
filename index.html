@@ -180,6 +180,92 @@
       font-weight: 600;
     }
 
+    /* ── Collection (Pokémon) styles ── */
+    .collection-header {
+      padding: 20px 20px 12px;
+    }
+    .collection-header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0b1d33;
+      margin-bottom: 4px;
+    }
+    .collection-meta {
+      font-size: 13px;
+      color: #888;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .collection-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-owned { background: #e6f4f4; color: #0e7c7b; }
+    .badge-chase { background: #fdecea; color: #d94040; }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding: 4px 12px 24px;
+    }
+    @media (min-width: 480px) { .card-grid { grid-template-columns: repeat(4, 1fr); } }
+    @media (min-width: 680px) { .card-grid { grid-template-columns: repeat(5, 1fr); } }
+
+    .poke-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+    }
+    .poke-card img {
+      width: 100%;
+      aspect-ratio: 0.72;
+      object-fit: cover;
+      display: block;
+      background: #f2f4f7;
+    }
+    .poke-card-info {
+      padding: 6px 8px 8px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .poke-card-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: #0b1d33;
+      line-height: 1.3;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .poke-card-set {
+      font-size: 9px;
+      color: #aaa;
+      font-family: monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .poke-card-price {
+      font-size: 10px;
+      font-weight: 600;
+      color: #0e7c7b;
+      margin-top: 2px;
+    }
+
   </style>
 </head>
 <body>
@@ -207,8 +293,9 @@
     const SUPABASE_URL = 'https://nxugxxonutrbglldeinc.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54dWd4eG9udXRyYmdsbGRlaW5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NzI4NTksImV4cCI6MjA4NzQ0ODg1OX0.yyUjeouMK8j8ONNmc291kIulUcQLEj4__0QvnuscOf8';
 
-    const listId = new URLSearchParams(window.location.search).get('id')
-      || window.location.pathname.split('/').pop();
+    const params = new URLSearchParams(window.location.search);
+    const listId = params.get('id') || window.location.pathname.split('/').pop();
+    const collectionId = params.get('collection');
 
     let listData = null;
 
@@ -342,7 +429,73 @@
         .replace(/"/g, '&quot;');
     }
 
-    loadList();
+    // ── Collection (Pokémon cards) ──────────────────────────────
+
+    async function loadCollection() {
+      if (!collectionId) {
+        document.getElementById('app').innerHTML = '<div class="error">❌ No collection found.</div>';
+        return;
+      }
+      try {
+        const rows = await api(`shared_collections?id=eq.${collectionId}&select=*`);
+        if (!rows || rows.length === 0) {
+          document.getElementById('app').innerHTML = '<div class="error">❌ Collection not found or expired.</div>';
+          return;
+        }
+        renderCollection(rows[0]);
+      } catch (e) {
+        document.getElementById('app').innerHTML = `<div class="error">❌ Failed to load collection.<br><small>${e.message}</small></div>`;
+      }
+    }
+
+    function renderCollection(data) {
+      const cards = Array.isArray(data.cards)
+        ? data.cards
+        : (typeof data.cards === 'string' ? JSON.parse(data.cards) : []);
+
+      const isChase = data.list_type === 'chase';
+      const badgeClass = isChase ? 'badge-chase' : 'badge-owned';
+      const badgeLabel = isChase ? '🎯 Chase List' : '✅ Owned';
+      const totalValue = cards.reduce((sum, c) => sum + (c.market_price || 0), 0);
+
+      let html = `
+        <div class="collection-header">
+          <h1>${escHtml(data.title)}</h1>
+          <div class="collection-meta">
+            <span class="collection-badge ${badgeClass}">${badgeLabel}</span>
+            <span>${cards.length} card${cards.length !== 1 ? 's' : ''}</span>
+            ${totalValue > 0 ? `<span>Est. value <strong>$${totalValue.toFixed(2)}</strong></span>` : ''}
+          </div>
+        </div>
+        <div class="card-grid">
+      `;
+
+      cards.forEach(card => {
+        const img = card.image_url || card.large_image_url || '';
+        const price = card.market_price ? `$${parseFloat(card.market_price).toFixed(2)}` : '';
+        html += `
+          <div class="poke-card">
+            ${img ? `<img src="${escHtml(img)}" alt="${escHtml(card.name)}" loading="lazy" />` : '<div style="aspect-ratio:0.72;background:#f2f4f7"></div>'}
+            <div class="poke-card-info">
+              <div class="poke-card-name">${escHtml(card.name)}</div>
+              <div class="poke-card-set">${escHtml(card.set_name)} · #${escHtml(card.number)}</div>
+              ${card.rarity ? `<div class="poke-card-set">${escHtml(card.rarity)}</div>` : ''}
+              ${price ? `<div class="poke-card-price">${price}</div>` : ''}
+            </div>
+          </div>
+        `;
+      });
+
+      html += `</div>`;
+      document.getElementById('app').innerHTML = html;
+    }
+
+    // ── Route ───────────────────────────────────────────────────
+    if (collectionId) {
+      loadCollection();
+    } else {
+      loadList();
+    }
   </script>
 </body>
 </html>
